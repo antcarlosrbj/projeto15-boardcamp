@@ -11,5 +11,5 @@ app.get("/", (req, res) => res.send("Hello!!!"))
 
 
 
-const port = process.env.PORT_BACK || 4000;
+const port = process.env.PORT || 4000;
 app.listen(port);
