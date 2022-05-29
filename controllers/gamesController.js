@@ -15,6 +15,7 @@ export async function gamesGET(req, res) {
             ON games."categoryId" = categories.id
         `);
 
+        
         /* FILTER (QUERY STRING) */
 
         if (req.query.name) {
