@@ -30,7 +30,28 @@ export async function customersGET(req, res) {
 export async function customersGETifID(req, res) {
     try {
 
+        const {id} = req.params;
+
+        /* SEARCH IN DATABASE */
+
+        const customers = await connection.query('SELECT * FROM customers');
+
+
+        /* DOES CATEGORYID EXIST? */
+
+        if (!customers.rows.find(customer => customer.id === Number(id))) {
+            console.log("customersGETifID/DOES CATEGORYID EXIST?");
+            res.sendStatus(404);
+            return;
+        }
+
         
+        /* FILTER (PARAMS) */
+
+        res.send(
+            customers.rows.filter(customer => customer.id === Number(id))
+        )
+
 
     } catch (error) {
         console.log("customersGET" + error);
