@@ -158,3 +158,56 @@ export async function rentalsPOST(req, res) {
         res.sendStatus(500);
     }
 }
+
+export async function rentalsPOSTreturn(req, res) {
+    try {
+
+        const {id} = req.params;
+
+
+        /* DOES RENTAL ID EXIST? */
+
+        const rental = await connection.query('SELECT * FROM rentals WHERE id = $1', [id]);
+
+        if (!rental.rows[0]) {
+            console.log("rentalsPOSTreturn/DOES RENTAL ID EXIST?");
+            res.sendStatus(404);
+            return;
+        }
+        
+
+        /* RENTAL ID HAS ALREADY BEEN RETURNED? */
+
+        if (rental.rows[0].returnDate) {
+            console.log("rentalsPOSTreturn/RENTAL ID HAS ALREADY BEEN RETURNED?");
+            res.sendStatus(400);
+            return;
+        }
+
+
+        /* CHECK DELAY */
+
+        const game = await connection.query('SELECT * FROM games WHERE id = $1', [rental.rows[0].gameId]);
+
+        let delayFee = 0;
+
+        if (Math.floor((dayjs() - dayjs(rental.rows[0].rentDate))/86400000) > rental.rows[0].daysRented) {
+            const delayDays = Math.floor((dayjs() - rental.rows[0].rentDate) /86400000) - rental.rows[0].daysRented;
+            delayFee = delayDays * game.rows[0].pricePerDay;
+        }
+        
+
+        /* SAVE TO DATABASE */
+        
+        await connection.query('UPDATE rentals SET "customerId"=$1, "gameId"=$2, "rentDate"=$3, "daysRented"=$4, "returnDate"=$5, "originalPrice"=$6, "delayFee"=$7 WHERE id=$8', [
+            rental.rows[0].customerId, rental.rows[0].gameId, rental.rows[0].rentDate, rental.rows[0].daysRented, dayjs().format('YYYY-MM-DD'), rental.rows[0].originalPrice, delayFee, id
+        ]);
+
+        res.sendStatus(200)
+
+
+    } catch (error) {
+        console.log("rentalsPUT" + error);
+        res.sendStatus(500);
+    }
+}
