@@ -1,4 +1,5 @@
 import connection from './db.js';
+import joi from 'joi';
 import dayjs from 'dayjs';
 
 export async function rentalsGET(req, res) {
@@ -83,6 +84,65 @@ export async function rentalsGET(req, res) {
 
     } catch (error) {
         console.log("rentalsGET" + error);
+        res.sendStatus(500);
+    }
+}
+
+export async function rentalsPOST(req, res) {
+    try {
+
+        const newRentals = req.body;
+
+
+        /* VALIDATION (JOI) */
+
+        const rentalsSchema = joi.object({
+            customerId: joi.number().integer().min(1).required(),
+            gameId: joi.number().integer().min(1).required(),
+            daysRented: joi.number().integer().min(1).required()
+        });
+
+        const validation = rentalsSchema.validate(newRentals);
+
+        if (validation.error) {
+            console.log("rentalsPOST/VALIDATION (JOI)");
+            res.sendStatus(400);
+            return;
+        }
+        
+
+        /* DOES CUSTOMERID EXIST? */
+
+        const customer = await connection.query('SELECT * FROM customers WHERE id = $1', [newRentals.customerId]);
+
+        if (!customer.rows[0]) {
+            console.log("rentalsPOST/DOES CUSTOMERID EXIST?");
+            res.sendStatus(400);
+            return;
+        }
+
+
+        /* DOES GAMEID EXIST? */
+
+        const game = await connection.query('SELECT * FROM games WHERE id = $1', [newRentals.gameId]);
+
+        if (!game.rows[0]) {
+            console.log("rentalsPOST/DOES GAMEID EXIST?");
+            res.sendStatus(400);
+            return;
+        }
+        
+
+        /* SAVE TO DATABASE */
+        
+        await connection.query('INSERT INTO rentals ("customerId","gameId","rentDate","daysRented","returnDate","originalPrice","delayFee") VALUES ($1, $2, $3, $4, null, $5, null)', [
+            newRentals.customerId, newRentals.gameId, dayjs().format('YYYY-MM-DD'), newRentals.daysRented, (newRentals.daysRented * game.rows[0].pricePerDay)
+        ]);
+
+        res.sendStatus(201)
+
+    } catch (error) {
+        console.log("rentalsPOST" + error);
         res.sendStatus(500);
     }
 }
