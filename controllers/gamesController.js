@@ -43,7 +43,7 @@ export async function gamesPOST(req, res) {
 
         /* VALIDATION (JOI) */
 
-        const userSchema = joi.object({
+        const gameSchema = joi.object({
             name: joi.string().required(),
             image: joi.string().required(),
             stockTotal: joi.number().integer().min(1).required(),
@@ -51,7 +51,7 @@ export async function gamesPOST(req, res) {
             pricePerDay: joi.number().min(1).required()
         });
 
-        const validation = userSchema.validate(newGame);
+        const validation = gameSchema.validate(newGame);
 
         if (validation.error) {
             console.log("gamesPOST/VALIDATION (JOI)");
@@ -62,9 +62,9 @@ export async function gamesPOST(req, res) {
 
         /* DOES CATEGORYID EXIST? */
 
-        const categorie = await connection.query('SELECT * FROM categories WHERE id = $1', [newGame.categoryId]);
+        const category = await connection.query('SELECT * FROM categories WHERE id = $1', [newGame.categoryId]);
 
-        if (!categorie.rows[0]) {
+        if (!category.rows[0]) {
             console.log("gamesPOST/DOES CATEGORYID EXIST?");
             res.sendStatus(400);
             return;

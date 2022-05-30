@@ -20,11 +20,11 @@ export async function categoriesPOST(req, res) {
 
         /* VALIDATION (JOI) */
 
-        const userSchema = joi.object({
+        const categorySchema = joi.object({
             name: joi.string().required()
         });
 
-        const validation = userSchema.validate(newCategory);
+        const validation = categorySchema.validate(newCategory);
 
         if (validation.error) {
             console.log("categoriesPOST/VALIDATION (JOI)");
