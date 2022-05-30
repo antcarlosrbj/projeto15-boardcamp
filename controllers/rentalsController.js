@@ -211,3 +211,40 @@ export async function rentalsPOSTreturn(req, res) {
         res.sendStatus(500);
     }
 }
+
+export async function rentalsDELETE(req, res) {
+    try {
+
+        const {id} = req.params;
+
+        /* DOES RENTAL ID EXIST? */
+
+        const rental = await connection.query('SELECT * FROM rentals WHERE id = $1', [id]);
+
+        if (!rental.rows[0]) {
+            console.log("rentalsDELETE/DOES RENTAL ID EXIST?");
+            res.sendStatus(404);
+            return;
+        }
+
+
+        /* RENTAL ID HAS ALREADY BEEN RETURNED? */
+
+        if (rental.rows[0].returnDate) {
+            console.log("rentalsDELETE/RENTAL ID HAS ALREADY BEEN RETURNED?");
+            res.sendStatus(400);
+            return;
+        }
+
+        
+        /* DELETE FROM DATABASE */
+
+        await connection.query('DELETE FROM rentals WHERE id = $1;', [id]);
+
+        res.sendStatus(200)
+
+    } catch (error) {
+        console.log("rentalsGET" + error);
+        res.sendStatus(500);
+    }
+}
