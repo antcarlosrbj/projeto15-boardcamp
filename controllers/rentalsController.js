@@ -131,7 +131,19 @@ export async function rentalsPOST(req, res) {
             res.sendStatus(400);
             return;
         }
-        
+
+
+        /* IS THERE GAME STOCK? */
+
+        const rentals = await connection.query('SELECT * FROM rentals WHERE "gameId" = $1 AND "returnDate" IS NULL', [newRentals.gameId]);
+        const leasedAmount = rentals.rows.length;
+
+        if (game.rows[0].stockTotal <= leasedAmount) {
+            console.log("rentalsPOST/IS THERE GAME STOCK?");
+            res.sendStatus(400);
+            return;
+        }
+
 
         /* SAVE TO DATABASE */
         
